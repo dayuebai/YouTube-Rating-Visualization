@@ -3,18 +3,43 @@
 const express = require('express');
 const fs = require('fs')
 const cron = require('node-cron'); // Import node-cron (a task scheduler): https://www.npmjs.com/package/node-cron
+const mysql = require('mysql');
+const {google} = require('googleapis');
+const path = require('path');
+const {authenticate} = require('@google-cloud/local-auth');
+
 const app = express();
 const port = 8080;
 const watchListLog = 'watchlist.log';
+const connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'root',
+  password : '',
+  database : 'ratings'
+});
+const youtube = google.youtube({ // initialize the Youtube API library
+  version: 'v3'
+});
+
+var auth;
+var unauth = true;
 let watchList = [];
+
+// Connect to MySQL
+connection.connect();
 
 app.get('/addID/:videoId', (req, res) => {
   let videoId = req.params.videoId;
   let idx = watchList.indexOf(videoId);
 
   if (idx == -1) { // if videoID is not in watch list
+    let query = `CREATE TABLE \`${videoId}\`(time BIGINT NOT NULL, date VARCHAR(50) NOT NULL, viewCount INT NOT NULL, likeCount INT NOT NULL, dislikeCount INT NOT NULL, commentCount INT NOT NULL, PRIMARY KEY(date));`;
+    connection.query(query, function(error, results, field) {
+      if (error) throw error;
+    });
+
+    // Append new video ID to watch list and the end of log file
     watchList.push(videoId);
-    // Append new video ID to the end of log file
     fs.appendFile(watchListLog, `${videoId}\n`, err => {
       if (err) {
         console.error(err);
@@ -51,6 +76,11 @@ app.get('/removeID/:videoId', (req, res) => {
          if (err) return console.log(err);
       });
     });
+    
+    let query = `DROP TABLE \`${videoId}\`;`;
+    connection.query(query, function(error, results, field) {
+      if (error) throw error;
+    });
   }
   res.send(`Remove videoID: ${videoId} from watch list. New watch list: ${watchList}`);
 });
@@ -61,40 +91,75 @@ app.get('/getRating/:videoId',(req, res) => {
   let idx = watchList.indexOf(videoId);
 
   if (idx != -1) { //if videoID is in watch list
-    // TODO: read rating history from database
-    console.log(watchList);
+    let query = `SELECT * from \`${videoId}\`;`;
+    connection.query(query, function(error, results, field) {
+      if (error) throw error;
+      res.send({'history': results});
+    });
   }
-  res.send(`rating history of videoID: ${videoId}`);
+  // res.send(`rating history of videoID.`);
 });
 
 
-function init() {
-  console.log("load all video IDs from log file to memory...");
+async function getRatingFromYouTube() {
+  if (watchList.length > 0) {
+    let date = new Date();
+    let time = date.getTime();
+    let dateStr = date.toLocaleString('en-US', { timeZone: 'America/Chicago' });
+    let video_ids = watchList.join(",");
+
+    console.log(`current watchlist: ${video_ids}`);
+
+    if (unauth) {
+      console.log("Doing authorization...");
+      auth = await authenticate({
+        keyfilePath: path.join(__dirname, './client_secret.json'),
+        scopes: ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/youtubepartner', 'https://www.googleapis.com/auth/youtube.force-ssl'],
+      });
+      
+      google.options({auth});
+      unauth = false;
+    }
+
+    const res = await youtube.videos.list({
+      part: 'statistics',
+      id: `${video_ids}`
+    });
+
+    // Parse result and insert data into database
+    const items = res.data.items;
+    for (var i = 0; i < items.length; i++) {
+      const id = items[i].id, viewCount = items[i].statistics.viewCount, likeCount = items[i].statistics.likeCount, dislikeCount = items[i].statistics.dislikeCount, commentCount = items[i].statistics.commentCount;
+      const query = `INSERT INTO \`${id}\` VALUES(${time}, "${dateStr}", ${viewCount}, ${likeCount}, ${dislikeCount}, ${commentCount});`;
   
+      connection.query(query, function(error, results, field) {
+        if (error) {
+          console.error(error);
+        }
+      })    
+    }
+  }
+}
+
+
+function init() {
+  console.log("Load all video IDs from log file to memory...");
+
   fs.readFile(watchListLog, 'utf8' , (err, data) => {
     if (err) {
       console.error(err);
       return;
     }
-    watchList = data.split('\n');
+    data = data.trim();
+    watchList = data.length > 0 ? data.split('\n') : [];
     console.log(`Initial watch list: ${watchList}`);
-  })
+  });
+
+  cron.schedule('*/10 * * * * *', getRatingFromYouTube, {scheduled:true, timezone: "America/Chicago"});
 };
 
 
 app.listen(port, () => {
-  console.log(`Server listening at port: ${port}`)
+  console.log(`Server listening at port: ${port}`);
   init();
 });
-
-
-function getRatingFromYouTube() {
-  // TODO: read from YouTube Data API the rating of every video ID in watch list and add data to database 
-  console.log(`Checking ratings of video IDs: ${watchList}`);
-}
-
-
-// Cron job: run task: getRatingFromYouTube() periodically
-cron.schedule('* * * * *', // Currently set to run every 1 minute
-              getRatingFromYouTube, 
-              {scheduled:true, timezone: "America/Chicago"});
