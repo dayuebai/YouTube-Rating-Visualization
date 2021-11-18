@@ -57,8 +57,11 @@ app.get('/addID/:videoId', (req, res) => {
         return;
       }
     });
+
+    res.status(200).send(`video ID: ${videoId} is added to watch list successfully.`)
+  } else {
+    res.status(201).send(`video ID: ${videoId} already exists. Try search it.`);
   }
-  res.send(`Add videoID: ${videoId} to watch list. New watch list: ${watchList}`);
 });
 
 
