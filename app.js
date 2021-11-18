@@ -6,6 +6,7 @@ const cron = require('node-cron'); // Import node-cron (a task scheduler): https
 const mysql = require('mysql');
 const {google} = require('googleapis');
 const path = require('path');
+const ejs = require('ejs');
 const {authenticate} = require('@google-cloud/local-auth');
 
 const app = express();
@@ -28,6 +29,16 @@ let watchList = [];
 // Connect to MySQL
 connection.connect();
 
+// Serving front end
+app.use(express.static('public'));
+app.use('/static', express.static(path.join(__dirname, 'public')));
+
+app.engine('.html', require('ejs').__express);
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'html');
+
+// Back end
 app.get('/addID/:videoId', (req, res) => {
   let videoId = req.params.videoId;
   let idx = watchList.indexOf(videoId);
@@ -99,6 +110,11 @@ app.get('/getRating/:videoId',(req, res) => {
   }
   // res.send(`rating history of videoID.`);
 });
+
+
+app.get('/', (req, res) => {
+  res.render('index');
+})
 
 
 async function getRatingFromYouTube() {
