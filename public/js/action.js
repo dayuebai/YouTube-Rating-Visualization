@@ -1,5 +1,13 @@
 function processResult(data) {
-    console.log(data);
+
+    if (data.startsWith('<!doctype html>')) {
+        const newDoc = document.open("text/html", "replace");
+        newDoc.write(data);
+        newDoc.close();        
+    } else {
+        console.log(data);
+        $('#message').text(data);
+    }
 }
 
 
@@ -16,16 +24,10 @@ function submitLoginForm(formSubmitEvent){
     let videoId = $('#video_id_input').val();
 
     let url = `/${action}/${videoId}`;
-
-    if (action == "addID" || action == "reoveID") {
-        jQuery.get(
-            url,
-            success=(data) => processResult(data)
-        );
-    } else {
-        console.log("get rating query....");
-        // TODO: undecided
-    }
+    jQuery.get(
+        url,
+        success=(data) => processResult(data)
+    );
 }
 
 

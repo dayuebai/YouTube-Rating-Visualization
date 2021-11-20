@@ -7,7 +7,6 @@ const mysql = require('mysql');
 const {google} = require('googleapis');
 const path = require('path');
 const ejs = require('ejs');
-const {authenticate} = require('@google-cloud/local-auth');
 
 const app = express();
 const port = 8080;
@@ -18,12 +17,11 @@ const connection = mysql.createConnection({
   password : '',
   database : 'ratings'
 });
-const youtube = google.youtube({ // initialize the Youtube API library
-  version: 'v3'
+const youtube = google.youtube({
+  version: 'v3',
+  auth: 'AIzaSyDy1das42uwCFvxh7rPIJ4iefrqH0PMxmM' // specify your API key here
 });
 
-var auth;
-var unauth = true;
 let watchList = [];
 
 // Connect to MySQL
@@ -31,12 +29,12 @@ connection.connect();
 
 // Serving front end
 app.use(express.static('public'));
-app.use('/static', express.static(path.join(__dirname, 'public')));
+// app.use('/static', express.static(path.join(__dirname, 'public')));
 
 app.engine('.html', require('ejs').__express);
 
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'html');
+app.set('view engine', 'ejs');
 
 // Back end
 app.get('/addID/:videoId', (req, res) => {
@@ -44,7 +42,7 @@ app.get('/addID/:videoId', (req, res) => {
   let idx = watchList.indexOf(videoId);
 
   if (idx == -1) { // if videoID is not in watch list
-    let query = `CREATE TABLE \`${videoId}\`(time BIGINT NOT NULL, date VARCHAR(50) NOT NULL, viewCount INT NOT NULL, likeCount INT NOT NULL, dislikeCount INT NOT NULL, commentCount INT NOT NULL, PRIMARY KEY(date));`;
+    let query = `CREATE TABLE IF NOT EXISTS \`${videoId}\`(time BIGINT NOT NULL, date VARCHAR(50) NOT NULL, viewCount INT NOT NULL, likeCount INT NOT NULL, dislikeCount INT NOT NULL, commentCount INT NOT NULL, PRIMARY KEY(date));`;
     connection.query(query, function(error, results, field) {
       if (error) throw error;
     });
@@ -58,9 +56,9 @@ app.get('/addID/:videoId', (req, res) => {
       }
     });
 
-    res.status(200).send(`video ID: ${videoId} is added to watch list successfully.`)
+    res.status(200).send(`Video ID: ${videoId} is added to watch list successfully.`)
   } else {
-    res.status(201).send(`video ID: ${videoId} already exists. Try search it.`);
+    res.status(201).send(`Video ID: ${videoId} already exists. Try searching it.`);
   }
 });
 
@@ -91,12 +89,16 @@ app.get('/removeID/:videoId', (req, res) => {
       });
     });
     
-    let query = `DROP TABLE \`${videoId}\`;`;
-    connection.query(query, function(error, results, field) {
-      if (error) throw error;
-    });
+    // let query = `DROP TABLE IF EXISTS \`${videoId}\`;`;
+    // connection.query(query, function(error, results, field) {
+    //   if (error) throw error;
+    // });
+
+    res.status(200).send(`Remove video ID: ${videoId} from watch list.`);
+  } else {
+    res.status(201).send(`Video ID: ${videoId} doesn't exist. Try adding it first.`);
   }
-  res.send(`Remove videoID: ${videoId} from watch list. New watch list: ${watchList}`);
+  
 });
 
 
@@ -106,17 +108,32 @@ app.get('/getRating/:videoId',(req, res) => {
 
   if (idx != -1) { //if videoID is in watch list
     let query = `SELECT * from \`${videoId}\`;`;
-    connection.query(query, function(error, results, field) {
+    connection.query(query, function(error, results) {
       if (error) throw error;
-      res.send({'history': results});
+
+      let fileContent = 'unix epoch,view count,like count,dislike count,comment count\n';
+      for (let i = 0; i < results.length; i++) {
+        let line = results[i];
+        fileContent += `${line.time/1000},${line.viewCount},${line.likeCount},${line.dislikeCount},${line.commentCount}\n`;
+      }
+
+      fs.writeFile(`public/data/${videoId}.csv`, fileContent, err => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+      });
+
+      res.render('rating', {'history': results, 'id': videoId});
     });
+  } else {
+    res.status(201).send(`Video ID: ${videoId} is not in watch list. Try adding it first.`);
   }
-  // res.send(`rating history of videoID.`);
 });
 
 
 app.get('/', (req, res) => {
-  res.render('index');
+  res.render('index.html');
 })
 
 
@@ -128,17 +145,6 @@ async function getRatingFromYouTube() {
     let video_ids = watchList.join(",");
 
     console.log(`current watchlist: ${video_ids}`);
-
-    if (unauth) {
-      console.log("Doing authorization...");
-      auth = await authenticate({
-        keyfilePath: path.join(__dirname, './client_secret.json'),
-        scopes: ['https://www.googleapis.com/auth/youtube', 'https://www.googleapis.com/auth/youtubepartner', 'https://www.googleapis.com/auth/youtube.force-ssl'],
-      });
-      
-      google.options({auth});
-      unauth = false;
-    }
 
     const res = await youtube.videos.list({
       part: 'statistics',
