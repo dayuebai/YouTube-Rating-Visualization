@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" class="h-100">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>YouTube Rating+</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/cover/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    
+    <!-- Fontawesome-->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+
+    <!-- jQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- plotly.js-->
+    <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
+    
+    <!-- <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style> -->
+
+  
+  </head>
+  <body class="d-flex h-100 text-center text-white bg-dark">
+    
+  <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+  <header class="mb-auto">
+    <div>
+      <h3 class="float-md-center mb-0"><a href="/" class='text-white' style='text-decoration: none;'>YouTube Rating+</a></h3>
+      <nav class="nav nav-masthead justify-content-center float-md-end">
+      </nav>
+    </div>
+  </header>
+  
+  <div id="likeDiv" class='bg-dark'> 
+  </div>
+
+  <div id="dislikeDiv" class='bg-dark'> 
+  </div>
+
+  <script>
+
+    let history = <%-JSON.stringify(locals.history)%>
+    let videoId = <%-JSON.stringify(locals.id)%>
+    let timeArr = [], dateArr = [], likeArr = [], dislikeArr = [], viewArr = [], commentArr = [];
+    
+    for (let i = 0; i < history.length; i++) {
+      timeArr.push(history[i].time);
+      dateArr.push(history[i].date);
+      likeArr.push(history[i].likeCount);
+      viewArr.push(history[i].viewCount);
+      dislikeArr.push(history[i].dislikeCount);
+      commentArr.push(history[i].commentCount);
+    }
+
+    var trace1 = {
+      type: "scatter",
+      mode: "lines",
+      name: 'Like Count',
+      x: dateArr,
+      y: likeArr,
+      line: {color: '#96DA1C'}
+    }
+
+    var trace2 = {
+      type: "scatter",
+      mode: "lines",
+      name: 'Dislike Count',
+      x: dateArr,
+      y: dislikeArr,
+      line: {color: '#EE4B2B'}
+    }
+
+    // var data = [trace1,trace2];
+    var data1 = [trace1], data2 = [trace2];
+
+    var layout1 = {
+      title: 'Like Count Line Chart',
+    };
+
+    var layout2 = {
+      title: 'Dislike Count Line Chart',
+    };
+
+    Plotly.newPlot('likeDiv', data1, layout1);
+    Plotly.newPlot('dislikeDiv', data2, layout2);
+
+    document.write(`<div style="padding: 20px"><a href="/data/${videoId}.csv" download>Download CSV</a></div>`);
+    
+  </script>
+
+  <footer class="mt-auto text-white-50">
+    <p></p>
+  </footer>
+
+  </div>
+    
+  </body>
+</html>

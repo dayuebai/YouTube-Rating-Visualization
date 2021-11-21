@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en" class="h-100">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+    <title>YouTube Rating+</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.1/examples/cover/">
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    
+    <!-- Fontawesome-->
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+
+    <!-- jQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    
+    <!-- Custom styles for this template -->
+    <link href="css/cover.css" rel="stylesheet">
+  </head>
+  <body class="d-flex h-100 text-center text-white bg-dark">
+    
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+  <header class="mb-auto">
+    <div>
+      <h3 class="float-md-start mb-0">YouTube Rating+</h3>
+      <nav class="nav nav-masthead justify-content-center float-md-end">
+        <a class="nav-link active" aria-current="page" href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="px-3">
+    <h1>YouTube Rating+</h1>
+    <p class="lead">YouTube Rating+ is a web app for visualizing YouTube videos' rating history to combat collusive behaviors such as dislike mob.</p>
+
+    <div class="container">
+      <form id="action_form">
+        <div class = "row justify-content-end" style="margin-bottom: 20px;">
+          <div class="col-md-4">
+            <select class="form-select" id="action-selection" aria-label="Default select example">
+              <option selected>Select</option>
+              <option value="addID">Add video</option>
+              <option value="removeID">Remove video</option>
+              <option value="getRating">Get rating</option>
+            </select>
+          </div>
+  
+          <div class="col-md-8">
+            <div class="input-group rounded">
+              <input type="search" id="video_id_input" class="form-control rounded" placeholder="Video ID" aria-label="Search"
+              aria-describedby="search-addon" required/>
+              <button type="submit" class="btn btn-secondary"><i class="fas fa-search"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class = "row justify-content-end">
+          <div id="message" class="text-white"></div>
+        </div>
+      </form>
+    </div>
+
+  </main>
+
+  <footer class="mt-auto text-white-50">
+    <p></p>
+  </footer>
+
+  </div>
+
+  <!-- my script-->
+  <script src="./js/action.js"></script>
+    
+  </body>
+</html>
