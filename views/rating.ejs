@@ -23,7 +23,7 @@
     <!-- plotly.js-->
     <script src="https://cdn.plot.ly/plotly-2.6.3.min.js"></script>
     
-    <style>
+    <!-- <style>
       .bd-placeholder-img {
         font-size: 1.125rem;
         text-anchor: middle;
@@ -37,7 +37,7 @@
           font-size: 3.5rem;
         }
       }
-    </style>
+    </style> -->
 
   
   </head>
@@ -52,52 +52,62 @@
     </div>
   </header>
   
-  <div id="myDiv" class='bg-dark'> 
-    <script>
-
-      let history = <%-JSON.stringify(locals.history)%>
-      let videoId = <%-JSON.stringify(locals.id)%>
-      let timeArr = [], dateArr = [], likeArr = [], dislikeArr = [], viewArr = [], commentArr = [];
-      
-      for (let i = 0; i < history.length; i++) {
-        timeArr.push(history[i].time);
-        dateArr.push(history[i].date);
-        likeArr.push(history[i].likeCount);
-        viewArr.push(history[i].viewCount);
-        dislikeArr.push(history[i].dislikeCount);
-        commentArr.push(history[i].commentCount);
-      }
-
-      var trace1 = {
-        type: "scatter",
-        mode: "lines",
-        name: 'Like Count',
-        x: dateArr,
-        y: likeArr,
-        line: {color: '#96DA1C'}
-      }
-
-      var trace2 = {
-        type: "scatter",
-        mode: "lines",
-        name: 'Dislike Count',
-        x: dateArr,
-        y: dislikeArr,
-        line: {color: '#EE4B2B'}
-      }
-
-      var data = [trace1,trace2];
-
-      var layout = {
-        title: 'Basic Time Series',
-      };
-
-      Plotly.newPlot('myDiv', data, layout);
-
-      document.write(`<div style="padding: 20px"><a href="/data/${videoId}.csv" download>Download CSV</a></div>`);
-      
-    </script>
+  <div id="likeDiv" class='bg-dark'> 
   </div>
+
+  <div id="dislikeDiv" class='bg-dark'> 
+  </div>
+
+  <script>
+
+    let history = <%-JSON.stringify(locals.history)%>
+    let videoId = <%-JSON.stringify(locals.id)%>
+    let timeArr = [], dateArr = [], likeArr = [], dislikeArr = [], viewArr = [], commentArr = [];
+    
+    for (let i = 0; i < history.length; i++) {
+      timeArr.push(history[i].time);
+      dateArr.push(history[i].date);
+      likeArr.push(history[i].likeCount);
+      viewArr.push(history[i].viewCount);
+      dislikeArr.push(history[i].dislikeCount);
+      commentArr.push(history[i].commentCount);
+    }
+
+    var trace1 = {
+      type: "scatter",
+      mode: "lines",
+      name: 'Like Count',
+      x: dateArr,
+      y: likeArr,
+      line: {color: '#96DA1C'}
+    }
+
+    var trace2 = {
+      type: "scatter",
+      mode: "lines",
+      name: 'Dislike Count',
+      x: dateArr,
+      y: dislikeArr,
+      line: {color: '#EE4B2B'}
+    }
+
+    // var data = [trace1,trace2];
+    var data1 = [trace1], data2 = [trace2];
+
+    var layout1 = {
+      title: 'Like Count Line Chart',
+    };
+
+    var layout2 = {
+      title: 'Dislike Count Line Chart',
+    };
+
+    Plotly.newPlot('likeDiv', data1, layout1);
+    Plotly.newPlot('dislikeDiv', data2, layout2);
+
+    document.write(`<div style="padding: 20px"><a href="/data/${videoId}.csv" download>Download CSV</a></div>`);
+    
+  </script>
 
   <footer class="mt-auto text-white-50">
     <p></p>
