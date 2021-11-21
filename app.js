@@ -180,7 +180,7 @@ function init() {
     console.log(`Initial watch list: ${watchList}`);
   });
 
-  cron.schedule('*/10 * * * * *', getRatingFromYouTube, {scheduled:true, timezone: "America/Chicago"});
+  cron.schedule('* * * * *', getRatingFromYouTube, {scheduled:true, timezone: "America/Chicago"});
 };
 
 
