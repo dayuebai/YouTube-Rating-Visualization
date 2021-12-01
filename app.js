@@ -42,7 +42,7 @@ app.get('/addID/:videoId', (req, res) => {
   let idx = watchList.indexOf(videoId);
 
   if (idx == -1) { // if videoID is not in watch list
-    let query = `CREATE TABLE IF NOT EXISTS \`${videoId}\`(time BIGINT NOT NULL, date VARCHAR(50) NOT NULL, viewCount INT NOT NULL, likeCount INT NOT NULL, dislikeCount INT NOT NULL, commentCount INT NOT NULL, PRIMARY KEY(date));`;
+    let query = `CREATE TABLE IF NOT EXISTS \`${videoId}\`(time BIGINT NOT NULL, date VARCHAR(50) NOT NULL, viewCount INT NOT NULL, likeCount INT NOT NULL, dislikeCount INT NOT NULL, commentCount INT NOT NULL, PRIMARY KEY(time));`;
     connection.query(query, function(error, results, field) {
       if (error) throw error;
     });
@@ -156,7 +156,7 @@ async function getRatingFromYouTube() {
     for (var i = 0; i < items.length; i++) {
       const id = items[i].id, viewCount = items[i].statistics.viewCount, likeCount = items[i].statistics.likeCount, dislikeCount = items[i].statistics.dislikeCount, commentCount = items[i].statistics.commentCount;
       const query = `INSERT INTO \`${id}\` VALUES(${time}, "${dateStr}", ${viewCount}, ${likeCount}, ${dislikeCount}, ${commentCount});`;
-  
+      console.log(query);
       connection.query(query, function(error, results, field) {
         if (error) {
           console.error(error);
